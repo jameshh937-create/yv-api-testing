@@ -1,0 +1,5 @@
+os
+flask
+dotenv
+requests
+json
