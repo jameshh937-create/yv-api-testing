@@ -70,4 +70,4 @@ def recommend():
     return json.loads(data['choices'][0]['message']['content']) # returns the LLM's response as a JSON object
 
 if __name__ == '__main__':
-    app.run(port=5000)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
