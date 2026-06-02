@@ -250,6 +250,27 @@
       font-style: italic;
     }
 
+    textarea#situation {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--ink);
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--border);
+      border-radius: 1px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      resize: none;
+      overflow: hidden;
+      line-height: 1.6;
+    }
+
+    textarea#situation:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(184,150,62,0.12);
+    }
+
     .spinner {
       display: inline-block;
       width: 20px; height: 20px;
@@ -278,7 +299,7 @@
   <!-- situation input -->
   <div class="version-row">
     <label for="situation">Describe your situation</label>
-    <input type="text" id="situation" placeholder="Enter text here" />
+    <textarea id="situation" placeholder="Enter text here" rows="2"></textarea>
   </div>
 
   <div style="text-align:center; margin-bottom: 1.5rem;">
@@ -479,6 +500,12 @@
   });
   document.getElementById('situation').addEventListener('keydown', e => {
     if (e.key === 'Enter') findChapter();
+  });
+
+  const situationEl = document.getElementById('situation');
+    situationEl.addEventListener('input', () => {
+    situationEl.style.height = 'auto';
+    situationEl.style.height = situationEl.scrollHeight + 'px';
   });
 </script>
 
