@@ -1,6 +1,5 @@
 import os
 from flask import Flask, jsonify, request
-from sambanova import SambaNova
 from dotenv import load_dotenv
 import requests
 import json
@@ -10,13 +9,7 @@ load_dotenv()
 app = Flask(__name__, static_folder='.', static_url_path='')
 
 YV_KEY = os.environ.get("YV_KEY")
-SAMBANOVA_API_KEY = os.environ.get("SAMBANOVA_API_KEY") 
 OPENROUTER_KEY = os.environ.get("OPENROUTER_KEY") 
-
-client = SambaNova(
-    api_key=SAMBANOVA_API_KEY, 
-    base_url="https://api.sambanova.ai/v1",
-)
 
 @app.route('/')
 def index():
