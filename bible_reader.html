@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Scripture Finder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;500&display=swap" rel="stylesheet" />
+  <style> 
+    :root {
+      --ink: #1a1208;
+      --parchment: #f5efdf;
+      --gold: #b8963e;
+      --gold-light: #d4af5a;
+      --shadow: rgba(26,18,8,0.15);
+      --border: rgba(184,150,62,0.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      background: var(--parchment);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+      background-image:
+        radial-gradient(ellipse at 20% 10%, rgba(184,150,62,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 90%, rgba(184,150,62,0.06) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .title-ornament {
+      color: var(--gold);
+      font-size: 1.4rem;
+      letter-spacing: 0.5em;
+      margin-bottom: 0.4rem;
+      opacity: 0.7;
+    }
+
+    h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      color: var(--ink);
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      font-style: italic;
+      color: var(--gold);
+      font-size: 1.1rem;
+      margin-top: 0.5rem;
+      letter-spacing: 0.04em;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1.5rem auto;
+      width: 100%;
+      max-width: 500px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+    }
+    .divider-icon { color: var(--gold); font-size: 1rem; }
+
+    .card {
+      background: rgba(255,255,255,0.55);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      box-shadow: 0 4px 32px var(--shadow), 0 1px 0 rgba(255,255,255,0.8) inset;
+      padding: 2rem 2.5rem;
+      width: 100%;
+      max-width: 720px;
+      backdrop-filter: blur(4px);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 1rem;
+      align-items: end;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 560px) {
+      .controls { grid-template-columns: 1fr 1fr; }
+      .controls button { grid-column: 1 / -1; }
+      .card { padding: 1.5rem; }
+    }
+
+    label {
+      display: block;
+      font-family: 'Cinzel', serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+    }
+
+    select, input[type="number"], input[type="text"] {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      color: var(--ink);
+      background: rgba(255,255,255,0.7);
+      border: 1px solid var(--border);
+      border-radius: 1px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23b8963e'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.8rem center;
+      padding-right: 2rem;
+      cursor: pointer;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(184,150,62,0.12);
+    }
+
+    .api-key-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: end;
+      margin-bottom: 1.5rem;
+    }
+
+    button {
+      font-family: 'Cinzel', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--parchment);
+      background: var(--ink);
+      border: 1px solid var(--ink);
+      padding: 0.72rem 1.6rem;
+      border-radius: 1px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, color 0.2s, transform 0.1s;
+    }
+    button:hover { background: var(--gold); border-color: var(--gold); }
+    button:active { transform: scale(0.98); }
+    button:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    .version-row {
+      margin-bottom: 1.5rem;
+    }
+
+    .status {
+      text-align: center;
+      padding: 1rem;
+      font-style: italic;
+      color: rgba(26,18,8,0.5);
+      font-size: 1.05rem;
+    }
+
+    .error {
+      color: #8b1a1a;
+      background: rgba(139,26,26,0.07);
+      border: 1px solid rgba(139,26,26,0.2);
+      border-radius: 2px;
+      padding: 0.8rem 1rem;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+
+    #output {
+      margin-top: 1rem;
+    }
+
+    .chapter-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .chapter-header .book-name {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+    }
+
+    .chapter-header .chapter-num {
+      font-style: italic;
+      color: var(--gold);
+      font-size: 1.1rem;
+      margin-top: 0.2rem;
+    }
+
+    .verses {
+      column-count: 1;
+      line-height: 1.9;
+      font-size: 1.18rem;
+      font-weight: 300;
+    }
+
+    .verse {
+      display: inline;
+    }
+
+    .verse-num {
+      font-family: 'Cinzel', serif;
+      font-size: 0.62rem;
+      font-weight: 500;
+      color: var(--gold);
+      vertical-align: super;
+      margin-right: 0.2em;
+      letter-spacing: 0.05em;
+    }
+
+    .verse-text {
+      display: inline;
+    }
+
+    .verse-text::after {
+      content: ' ';
+    }
+
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: rgba(26,18,8,0.4);
+      font-style: italic;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 1.5rem auto;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-wrap { text-align: center; padding: 1rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="title-ornament">✦ ✦ ✦</div>
+  <h1>Scripture Finder</h1>
+  <div class="subtitle">YouVersion Bible API</div>
+</header>
+
+<div class="card">
+  <div class="divider"><span class="divider-icon">✦</span></div>
+
+  <!-- situation input -->
+  <div class="version-row">
+    <label for="situation">Describe your situation</label>
+    <input type="text" id="situation" placeholder="Enter text here" />
+  </div>
+
+  <div style="text-align:center; margin-bottom: 1.5rem;">
+    <button id="feelBtn" onclick="findChapter()">Find a Chapter for Me</button>
+  </div>
+
+  <div class="divider"><span class="divider-icon">✦</span></div>
+
+  <!-- Manual selection -->
+  <div class="version-row">
+    <label for="version">Bible Version</label>
+    <select id="version">
+      <option value="3034">Berean Standard Bible (BSB)</option>
+      <option value="43">Chinese Standard Bible (CSB)</option>
+      <option value="111">New International Version (NIV)</option>
+      <option value="12">American Standard Version (ASV)</option>
+      <option value="206">World English Bible (WEB)</option>
+      <option value="3291">Versión Biblia Libre (VBL)</option>
+      <option value="2351">Elberfelder Translation (Version of bibelkommentare.de)</option>
+      </select>
+  </div>
+
+  <div class="controls">
+    <div>
+      <label for="book">Book</label>
+      <select id="book">
+        <option value="GEN">Genesis</option><option value="EXO">Exodus</option>
+        <option value="LEV">Leviticus</option><option value="NUM">Numbers</option>
+        <option value="DEU">Deuteronomy</option><option value="JOS">Joshua</option>
+        <option value="JDG">Judges</option><option value="RUT">Ruth</option>
+        <option value="1SA">1 Samuel</option><option value="2SA">2 Samuel</option>
+        <option value="1KI">1 Kings</option><option value="2KI">2 Kings</option>
+        <option value="1CH">1 Chronicles</option><option value="2CH">2 Chronicles</option>
+        <option value="EZR">Ezra</option><option value="NEH">Nehemiah</option>
+        <option value="EST">Esther</option><option value="JOB">Job</option>
+        <option value="PSA">Psalms</option><option value="PRO">Proverbs</option>
+        <option value="ECC">Ecclesiastes</option><option value="SNG">Song of Solomon</option>
+        <option value="ISA">Isaiah</option><option value="JER">Jeremiah</option>
+        <option value="LAM">Lamentations</option><option value="EZK">Ezekiel</option>
+        <option value="DAN">Daniel</option><option value="HOS">Hosea</option>
+        <option value="JOL">Joel</option><option value="AMO">Amos</option>
+        <option value="OBA">Obadiah</option><option value="JON">Jonah</option>
+        <option value="MIC">Micah</option><option value="NAM">Nahum</option>
+        <option value="HAB">Habakkuk</option><option value="ZEP">Zephaniah</option>
+        <option value="HAG">Haggai</option><option value="ZEC">Zechariah</option>
+        <option value="MAL">Malachi</option><option value="MAT">Matthew</option>
+        <option value="MRK">Mark</option><option value="LUK">Luke</option>
+        <option value="JHN" selected>John</option><option value="ACT">Acts</option>
+        <option value="ROM">Romans</option><option value="1CO">1 Corinthians</option>
+        <option value="2CO">2 Corinthians</option><option value="GAL">Galatians</option>
+        <option value="EPH">Ephesians</option><option value="PHP">Philippians</option>
+        <option value="COL">Colossians</option><option value="1TH">1 Thessalonians</option>
+        <option value="2TH">2 Thessalonians</option><option value="1TI">1 Timothy</option>
+        <option value="2TI">2 Timothy</option><option value="TIT">Titus</option>
+        <option value="PHM">Philemon</option><option value="HEB">Hebrews</option>
+        <option value="JAS">James</option><option value="1PE">1 Peter</option>
+        <option value="2PE">2 Peter</option><option value="1JN">1 John</option>
+        <option value="2JN">2 John</option><option value="3JN">3 John</option>
+        <option value="JUD">Jude</option><option value="REV">Revelation</option>
+      </select>
+    </div>
+    <div>
+      <label for="chapter">Chapter</label>
+      <input type="number" id="chapter" value="3" min="1" max="150" />
+    </div>
+    <button id="fetchBtn" onclick="fetchChapter()">Read</button>
+  </div>
+
+  <div id="output"></div>
+</div>
+
+<script>
+  const bookNames = {
+    GEN:"Genesis",EXO:"Exodus",LEV:"Leviticus",NUM:"Numbers",DEU:"Deuteronomy",
+    JOS:"Joshua",JDG:"Judges",RUT:"Ruth","1SA":"1 Samuel","2SA":"2 Samuel",
+    "1KI":"1 Kings","2KI":"2 Kings","1CH":"1 Chronicles","2CH":"2 Chronicles",
+    EZR:"Ezra",NEH:"Nehemiah",EST:"Esther",JOB:"Job",PSA:"Psalms",PRO:"Proverbs",
+    ECC:"Ecclesiastes",SNG:"Song of Solomon",ISA:"Isaiah",JER:"Jeremiah",
+    LAM:"Lamentations",EZK:"Ezekiel",DAN:"Daniel",HOS:"Hosea",JOL:"Joel",
+    AMO:"Amos",OBA:"Obadiah",JON:"Jonah",MIC:"Micah",NAM:"Nahum",HAB:"Habakkuk",
+    ZEP:"Zephaniah",HAG:"Haggai",ZEC:"Zechariah",MAL:"Malachi",
+    MAT:"Matthew",MRK:"Mark",LUK:"Luke",JHN:"John",ACT:"Acts",ROM:"Romans",
+    "1CO":"1 Corinthians","2CO":"2 Corinthians",GAL:"Galatians",EPH:"Ephesians",
+    PHP:"Philippians",COL:"Colossians","1TH":"1 Thessalonians","2TH":"2 Thessalonians",
+    "1TI":"1 Timothy","2TI":"2 Timothy",TIT:"Titus",PHM:"Philemon",HEB:"Hebrews",
+    JAS:"James","1PE":"1 Peter","2PE":"2 Peter","1JN":"1 John","2JN":"2 John",
+    "3JN":"3 John",JUD:"Jude",REV:"Revelation"
+  };
+
+  const languageVersion = {
+    "english":3034,
+    "spanish":3291,
+    "chinese":43,
+    "german":2351
+  };
+
+  async function findChapter() {
+    const situation = document.getElementById('situation').value.trim();
+    const output = document.getElementById('output');
+    const btn = document.getElementById('feelBtn');
+
+    if (!situation) {
+      output.innerHTML = '<div class="error">Please describe your situation first.</div>';
+      return;
+    }
+
+    btn.disabled = true;
+    output.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><div class="status">Searching the scriptures for you…</div></div>';
+
+    try {
+      const recRes = await fetch('/api/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ situation })
+      });
+      const rec = await recRes.json();
+
+      const language = rec.language;
+      const version = languageVersion[language.toLowerCase()];
+      const verseRes = await fetch(`/api/verses?version=${version}&book=${rec.book}&chapter=${rec.chapter}`);
+      const data = await verseRes.json();
+
+      document.getElementById('version').value = version;
+      document.getElementById('book').value = rec.book;
+      document.getElementById('chapter').value = rec.chapter;
+
+      if (!data.content) {
+        output.innerHTML = '<div class="status">No content found for this selection.</div> <div>' + `/api/verses?version=${version}&book=${rec.book}&chapter=${rec.chapter}` + '</div>';
+        return;
+      }
+
+      const bookLabel = bookNames[rec.book] || rec.book;
+      output.innerHTML = `
+        <div class="divider"><span class="divider-icon">✦</span></div>
+        <div class="chapter-header">
+          <div class="book-name">${bookLabel}</div>
+          <div class="chapter-num">Chapter ${rec.chapter}</div>
+        </div>
+        <div class="verses">${data.content}</div>
+        <div class="divider"><span class="divider-icon">✦</span></div>
+        <div class="chapter-header">
+          <div class="book-name">Summary</div>
+        </div>
+        <div class="verses">${rec.summary}</div>
+      `;
+
+    } catch (err) {
+      output.innerHTML = `<div class="error">Something went wrong: ${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  async function fetchChapter() {
+    const version = document.getElementById('version').value;
+    const book = document.getElementById('book').value;
+    const chapter = parseInt(document.getElementById('chapter').value);
+    const output = document.getElementById('output');
+    const btn = document.getElementById('fetchBtn');
+
+    if (!chapter || chapter < 1) {
+      output.innerHTML = '<div class="error">Please enter a valid chapter number.</div>';
+      return;
+    }
+
+    btn.disabled = true;
+    output.innerHTML = '<div class="loading-wrap"><div class="spinner"></div><div class="status">Opening the scriptures…</div></div>';
+
+    try {
+      const res = await fetch(`/api/verses?version=${version}&book=${book}&chapter=${chapter}`);
+      if (!res.ok) {
+        output.innerHTML = `<div class="error">API error: ${res.status}</div>`;
+        return;
+      }
+      const data = await res.json();
+      if (!data.content) {
+        output.innerHTML = '<div class="status">No content found for this selection.</div>';
+        return;
+      }
+      const bookLabel = bookNames[book] || book;
+      output.innerHTML = `
+        <div class="divider"><span class="divider-icon">✦</span></div>
+        <div class="chapter-header">
+          <div class="book-name">${bookLabel}</div>
+          <div class="chapter-num">Chapter ${chapter}</div>
+        </div>
+        <div class="verses">${data.content}</div>
+      `;
+    } catch (err) {
+      output.innerHTML = `<div class="error">Network error: ${err.message}</div>`;
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('chapter').addEventListener('keydown', e => {
+    if (e.key === 'Enter') fetchChapter();
+  });
+  document.getElementById('situation').addEventListener('keydown', e => {
+    if (e.key === 'Enter') findChapter();
+  });
+</script>
+
+<footer>Bible content provided by YouVersion &mdash; All scripture is copyright of the respective publishers.</footer>
+</body>
+</html>
